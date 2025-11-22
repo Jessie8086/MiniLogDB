@@ -1835,8 +1835,6 @@ void BPlusTree::Select_Data_Join(vector<string>attributenames, vector<LOGIC>Logi
         return;
     }
 
-    // [新增] Helper lambda: 去除表名前缀 (例如 "table.col" -> "col")
-    // 这一步至关重要，用于解决 SQL 解析出的全名与存储层短名不一致的问题
     auto removeTablePrefix = [](string col) -> string {
         size_t pos = col.find('.');
         if (pos != string::npos) {
@@ -1858,7 +1856,6 @@ void BPlusTree::Select_Data_Join(vector<string>attributenames, vector<LOGIC>Logi
             bool attrInLocal = false;
             bool valInRemote = false;
 
-            // [修改] 使用去除前缀后的纯列名进行比对
             string pureAttr = removeTablePrefix(cond.attribute);
             string pureVal = removeTablePrefix(cond.value);
 
@@ -1909,7 +1906,6 @@ void BPlusTree::Select_Data_Join(vector<string>attributenames, vector<LOGIC>Logi
     vector<WhereCondition> wc2;
     int local_join_index = -1;
 
-    // [修改] 查找本地 Join 列索引时，也要去除前缀
     string pureLocalKey = removeTablePrefix(local_join_key);
 
     // Find index of local join column
@@ -1928,14 +1924,12 @@ void BPlusTree::Select_Data_Join(vector<string>attributenames, vector<LOGIC>Logi
     // Separate conditions: WC1 for main table, WC2 for joined table
     for (int i = 0; i < w.size(); i++) {
         // Ignore join condition itself
-        // [修改] 比较时两边都剥离前缀，确保匹配准确
         if (removeTablePrefix(w[i].attribute) == removeTablePrefix(local_join_key) && 
             removeTablePrefix(w[i].value) == removeTablePrefix(remote_join_key)) {
             continue;
         }
 
         bool isLocal = false;
-        // [修改] 剥离前缀后判断归属
         string currentAttr = removeTablePrefix(w[i].attribute);
 
         for (int j = 0; j < this->attr_num; j++) {
@@ -1950,8 +1944,6 @@ void BPlusTree::Select_Data_Join(vector<string>attributenames, vector<LOGIC>Logi
             }
         }
 
-        // [重要修改] 必须创建一个新的 WhereCondition 并修改 attribute 为剥离前缀后的版本
-        // 否则底层的 SatisfyCondition 拿 "employee.age" 去比对 "age" 会失败
         WhereCondition cleanCond = w[i];
         cleanCond.attribute = currentAttr; 
 
@@ -1979,7 +1971,6 @@ void BPlusTree::Select_Data_Join(vector<string>attributenames, vector<LOGIC>Logi
                 string joinVal = value2str(data[local_join_index], this->attr[local_join_index].key_kind);
 
                 // The value here must be a concrete value, not a column name
-                // [修改] Remote Key 也需要去除前缀
                 WhereCondition joinCond(removeTablePrefix(remote_join_key), "=", joinVal);
                 wc_join.push_back(joinCond);
 
