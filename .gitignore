@@ -1,0 +1,30 @@
+# trash file from C++ compilation
+*.o
+*.obj
+*.exe
+
+# CMake build directory and caches
+build/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+
+# IDE configuration files
+.vscode/
+.idea/
+.DS_Store
+
+# files generated when databases execute
+# data table
+*.bin
+# pre-written log file
+*.wal
+# Checkpoint file
+*.ckpt
+# database metadata
+*.meta
+
+# executable files
+minilog_db
+test_recovery
