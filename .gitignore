@@ -26,5 +26,4 @@ Makefile
 *.meta
 
 # executable files
-minilog_db
 test_recovery
